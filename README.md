@@ -52,13 +52,15 @@ Format is optional parameter to determine the output format. JSON format is defa
 
 The body request must have the following information:
 
-\*currencyPairs: Array containing string elements with the following structure: "EUR/DOL" => "EUR" is the base currency and "DOL" is the target currency;
+* currencyPairs: Array containing string elements with the following structure: "EUR/DOL" => "EUR" is the base currency and "DOL" is the target currency;
 
-\*startDate: Starting date for the dataset. Should be in the following formtat "YYYY-DD-MM";
+* startDate: Starting date for the dataset. Should be in the following formtat "YYYY-DD-MM";
 
-\*endDate: End date for the dataset. Should be in the following formtat "YYYY-DD-MM";
+* endDate: End date for the dataset. Should be in the following formtat "YYYY-DD-MM";
 
-\*Authentication header with the JWT token received on login.
+Haders:
+
+* Authentication header with the JWT token received on login.
 
 The following are examples to make a request to the API:
 
