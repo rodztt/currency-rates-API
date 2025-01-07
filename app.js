@@ -16,12 +16,19 @@ app.use((req, res, next) => {
     bodyParser.json()(req, res, next);
   } else if (contentType === "application/xml") {
     // Parse XML body
-    bodyParser.text({ type: "text/xml" })(req, res, () => {
-      xml2js.parseString(req.body, (err, result) => {
+    bodyParser.text({ type: "application/xml" })(req, res, () => {
+      xml2js.parseString(req.body, { explicitArray: false }, (err, result) => {
         if (err) {
           return res.status(400).json({ error: "Invalid XML" });
         }
-        req.body = result;
+        req.body = {
+          //checks if there is only one pair then wrap it between [] otherwse directly sotres in currenciePairs
+          currencyPairs: Array.isArray(result.request.currencyPairs.pair)
+            ? result.request.currencyPairs.pair
+            : [result.request.currencyPairs.pair],
+          startDate: result.request.startDate,
+          endDate: result.request.endDate,
+        };
         next();
       });
     });
@@ -59,7 +66,7 @@ app.param("format", (req, res, next, format) => {
   if (format !== "json" && format !== "xml") {
     return res.status(400).send('Invalid format. Please use "json" or "xml".');
   }
-  req.format = format || "json"; 
+  req.format = format || "json";
 
   next();
 });
@@ -67,7 +74,6 @@ app.param("format", (req, res, next, format) => {
 // Route that retrieves exchange rates for each currency pair
 app.post("/getExchangeRates/:format?", async (req, res) => {
   try {
-
     const { currencyPairs, startDate, endDate } = req.body;
     const responses = [];
 
