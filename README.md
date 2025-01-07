@@ -68,4 +68,4 @@ JSON Body request:
 
 XML Body request:
 
-```xml<?xml version="1.0" encoding="UTF-8"?> <request> <currencyPairs> <pair>USD/BRL</pair> <pair>EUR/USD</pair> <pair>BRL/JPY</pair> </currencyPairs> <startDate>2009-05-04</startDate> <endDate>2009-05-20</endDate> </request>"````
+```<?xml version="1.0" encoding="UTF-8"?> <request> <currencyPairs> <pair>USD/BRL</pair> <pair>EUR/USD</pair> <pair>BRL/JPY</pair> </currencyPairs> <startDate>2009-05-04</startDate> <endDate>2009-05-20</endDate> </request>"```
