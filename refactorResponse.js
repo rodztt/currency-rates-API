@@ -7,9 +7,9 @@ const refactorResponse=(data) =>{
     const observations = Object.entries(data.dataSets[0].series["0:0:0:0:0"].observations)
     .map(([index, observation]) => ({ 
       date: data.structure.dimensions.observation[0].values[index].id, 
-      rate: observation[0] 
+      rate: observation[0],
     }));
-  
+    
     return {
       baseCurrency,
       currency: targetCurrency,

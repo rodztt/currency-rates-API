@@ -13,5 +13,4 @@ const  calculateCrossRate= function calculateCrossRate(baseCurrencyReference, ta
     };
   }
 
-
 module.exports = calculateCrossRate;

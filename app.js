@@ -1,12 +1,34 @@
 const express = require("express");
 const axios = require("axios");
+const bodyParser = require("body-parser");
 const app = express();
 const PORT = process.env.PORT || 4001;
 const calculateCrossRate = require("./calculateCrossRate.js");
 const refactorResponse = require("./refactorResponse.js");
+const xml2js = require("xml2js");
 
-// Middleware to parse request body
-app.use(express.json());
+// Middleware for checking content-type and parsing body
+app.use((req, res, next) => {
+  const contentType = req.headers["content-type"];
+
+  if (contentType === "application/json") {
+    // Parse JSON body
+    bodyParser.json()(req, res, next);
+  } else if (contentType === "application/xml") {
+    // Parse XML body
+    bodyParser.text({ type: "text/xml" })(req, res, () => {
+      xml2js.parseString(req.body, (err, result) => {
+        if (err) {
+          return res.status(400).json({ error: "Invalid XML" });
+        }
+        req.body = result;
+        next();
+      });
+    });
+  } else {
+    return res.status(400).json({ error: "Unsupported Content-Type" });
+  }
+});
 
 // Middleware to validate request data
 app.use((req, res, next) => {
@@ -37,19 +59,21 @@ app.param("format", (req, res, next, format) => {
   if (format !== "json" && format !== "xml") {
     return res.status(400).send('Invalid format. Please use "json" or "xml".');
   }
-  req.format = format || "json";
+  req.format = format || "json"; 
+
   next();
 });
 
 // Route that retrieves exchange rates for each currency pair
 app.post("/getExchangeRates/:format?", async (req, res) => {
   try {
+
     const { currencyPairs, startDate, endDate } = req.body;
     const responses = [];
 
     for (const pair of currencyPairs) {
       const [baseCurrency, targetCurrency] = pair.split("/");
-        console.log(baseCurrency,targetCurrency);
+
       if (baseCurrency === "EUR") {
         // Case 1: XXX/EUR
         const ecbData = await requestToEcb(targetCurrency, startDate, endDate);
@@ -78,7 +102,15 @@ app.post("/getExchangeRates/:format?", async (req, res) => {
       }
     }
 
-    res.json(responses);
+    if (req.format === "json" || !req.format) {
+      res.json(responses);
+    } else {
+      // Convert response data to XML if requested
+      const builder = new xml2js.Builder();
+      const xmlResponse = builder.buildObject({ root: { responses } });
+      res.set("Content-Type", "application/xml");
+      res.send(xmlResponse);
+    }
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to fetch exchange rates" });
