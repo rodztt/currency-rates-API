@@ -1,3 +1,6 @@
+//BRISKEN TECHNICAL CHALLENGE
+//By RTT
+
 const express = require("express");
 const axios = require("axios");
 const bodyParser = require("body-parser");
@@ -6,6 +9,11 @@ const PORT = process.env.PORT || 4001;
 const calculateCrossRate = require("./calculateCrossRate.js");
 const refactorResponse = require("./refactorResponse.js");
 const xml2js = require("xml2js");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
+const API_KEY = process.env.API_KEY || "your_secret_key";
+const users = []; // For the purpose of the Brisken challenge, using in-memory array. Should be a database in production.
 
 // Middleware for checking content-type and parsing body
 app.use((req, res, next) => {
@@ -22,7 +30,6 @@ app.use((req, res, next) => {
           return res.status(400).json({ error: "Invalid XML" });
         }
         req.body = {
-          //checks if there is only one pair then wrap it between [] otherwse directly sotres in currenciePairs
           currencyPairs: Array.isArray(result.request.currencyPairs.pair)
             ? result.request.currencyPairs.pair
             : [result.request.currencyPairs.pair],
@@ -36,6 +43,56 @@ app.use((req, res, next) => {
     return res.status(400).json({ error: "Unsupported Content-Type" });
   }
 });
+
+// User registration
+app.post("/register", async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ error: "Username and password are required" });
+  }
+  const saltRounds = 10;
+  try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    users.push({ username, password: hashedPassword });
+    res.status(201).send("User registered");
+  } catch (error) {
+    console.error("Error hashing password:", error);
+    res.status(500).json({ error: "Failed to register user" });
+  }
+});
+
+// User login
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find((user) => user.username === username);
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(401).send("Invalid credentials");
+  }
+  const token = jwt.sign({ username: user.username }, API_KEY, {
+    expiresIn: "1h",
+  });
+  res.json({ token });
+});
+
+// JWT Middleware
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) {
+    return res.status(403).json({ error: "Token required" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, API_KEY);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    console.error("Token verification failed:", err.message);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};
 
 // Middleware to validate request data
 app.use((req, res, next) => {
@@ -67,12 +124,11 @@ app.param("format", (req, res, next, format) => {
     return res.status(400).send('Invalid format. Please use "json" or "xml".');
   }
   req.format = format || "json";
-
   next();
 });
 
 // Route that retrieves exchange rates for each currency pair
-app.post("/getExchangeRates/:format?", async (req, res) => {
+app.post("/getExchangeRates/:format?", verifyToken, async (req, res) => {
   try {
     const { currencyPairs, startDate, endDate } = req.body;
     const responses = [];
