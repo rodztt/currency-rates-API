@@ -8,7 +8,7 @@ This REST API provides daily exchange rates for different currency pairs based o
 
 First the end-user must send a POST request to the following endpoint to register:
 
-/register
+<mark>/register</mark>
 
 With the following information in JSON format with the following information:
 
@@ -23,7 +23,7 @@ The API should send back 201 status and the message "User registered"
 
 The user must then Login in the API using the following endpoint:
 
-/login
+<mark>/login</mark>
 
 The following body request must be sent:
 
@@ -44,11 +44,11 @@ This is the JWT token, (1h expiration), that user must use to make requests to g
 
 The app accepts requests both in JSON and XML formats. The endpoint to get the exchange rates are:
 
-getExchangeRates/:format?
+<mark>getExchangeRates/:format?</mark>
 
 Format is optional parameter to determine the output format. JSON format is default but also accepts xml value as following:
 
-getExchangeRates/xml
+<mark>getExchangeRates/xml</mark>
 
 The body request must have the following information:
 
