@@ -1,3 +1,6 @@
+//this functions is used to calculate ,using two responses from the ECB API as inout, new exchange rates with differente
+//base currency than EUR
+
 function toFixedNumber(num, digits, base){
   const pow = Math.pow(base ?? 10, digits);
   return Math.round(num*pow) / pow;

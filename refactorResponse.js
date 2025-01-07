@@ -1,3 +1,5 @@
+//this functions is used to refactor the response from ECB API to the pattern used by the api
+
 const refactorResponse=(data) =>{
     // Extract base and target currencies
     const baseCurrency = data.structure.dimensions.series.find(dim => dim.id === "CURRENCY_DENOM").values[0].id;
